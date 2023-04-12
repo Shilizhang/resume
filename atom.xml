@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://shilizhang.github.io/work</id>
+    <title>yn519</title>
+    <updated>2023-04-12T06:16:40.668Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://shilizhang.github.io/work"/>
+    <link rel="self" href="https://shilizhang.github.io/work/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://shilizhang.github.io/work/images/avatar.png</logo>
+    <icon>https://shilizhang.github.io/work/favicon.ico</icon>
+    <rights>All rights reserved 2023, yn519</rights>
+    <entry>
+        <title type="html"><![CDATA[测试标题]]></title>
+        <id>https://shilizhang.github.io/work/post/ce-shi-biao-ti/</id>
+        <link href="https://shilizhang.github.io/work/post/ce-shi-biao-ti/">
+        </link>
+        <updated>2023-04-12T06:14:33.000Z</updated>
+        <content type="html"><![CDATA[<p>测试内容</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[element-ui 级联选择器（Cascader）使用懒加载的回显]]></title>
+        <id>https://shilizhang.github.io/work/post/qian-yan/</id>
+        <link href="https://shilizhang.github.io/work/post/qian-yan/">
+        </link>
+        <updated>2023-04-12T03:33:04.000Z</updated>
+        <content type="html"><![CDATA[<ul>
+<li>当我在回来看这篇文档的时候，我觉得我已经把懒加载写好了，基础的懒加载使用方法就不做记录了，如果不会移步<a href="https://element.eleme.cn/2.15/#/zh-CN/component/cascader">这里</a></li>
+<li>我目前的使用场景：</li>
+</ul>
+<ol>
+<li>根据部门选择了销售人员，<strong>四级联动</strong></li>
+<li>给销售人员分配业务区域，for循环，动态添加， <strong>四级联动</strong></li>
+</ol>
+<ul>
+<li>在回显的时候，因为懒加载数据并没有结束，所以会导致我们的虽然赋值成功，但是不会展示，此时我们值需要在一级列表内，对应的值的对象中添加一个<strong>children</strong>对象并赋值为<strong>空数组</strong>即可 直接上代码</li>
+<li>html部分</li>
+</ul>
+<pre><code class="language-html">	&lt;el-form ref=&quot;businessForm&quot; :model=&quot;businessForm&quot; label-width=&quot;80px&quot;&gt;
+       &lt;el-form-item v-if=&quot;userId === 0&quot; label=&quot;销售成员&quot; prop=&quot;name&quot; :rules=&quot;{required: true, message: '请选择销售成员', trigger: 'blur'}&quot;&gt;
+         &lt;el-cascader v-model=&quot;businessForm.name&quot; :props=&quot;userProps&quot; /&gt;
+       &lt;/el-form-item&gt;
+       &lt;el-form-item v-else label=&quot;销售成员&quot; &gt;
+         &lt;el-input :value=&quot;userName&quot; class=&quot;name-int&quot; disabled /&gt;
+       &lt;/el-form-item&gt;
+       &lt;el-form-item
+         v-for=&quot;(item, index) in businessForm.areaList&quot;
+         :key=&quot;item.id&quot;
+         :label=&quot;index === 0 ? '业务区域' : ''&quot;
+         :prop=&quot;'areaList.' + index + '.value'&quot;
+         :rules=&quot;{required: false, validator: validArea, trigger: 'blur'}&quot;
+       &gt;
+         &lt;div&gt;
+           &lt;el-cascader
+             v-model=&quot;item.value&quot;
+             class=&quot;mr-10&quot;
+             :props=&quot;areaPropsFun(item, index)&quot;
+           /&gt;
+           &lt;el-button type=&quot;primary&quot; plain @click=&quot;businessForm.areaList.splice(index + 1, 0, {value: '', id: Math.random().toString(16).slice(2)}) &quot;&gt;+&lt;/el-button&gt;
+           &lt;el-button v-if=&quot;businessForm.areaList.length &gt; 1&quot; type=&quot;danger&quot; plain @click=&quot;businessForm.areaList.splice(index, 1)&quot;&gt;-&lt;/el-button&gt;
+         &lt;/div&gt;
+       &lt;/el-form-item&gt;
+     &lt;/el-form&gt;
+</code></pre>
+<ul>
+<li>js部分</li>
+</ul>
+<pre><code class="language-javascript">  data() {
+    const that = this
+    const validArea = (rule, value, callback) =&gt; {
+	    // 校验方法
+    }
+    return {
+      businessForm: {
+        name: '',
+        areaList: []
+      },
+      userProps: {
+        lazy: true,
+        async lazyLoad (node, resolve) {
+          const { level } = node;
+          let data = []
+          // 获取数据 data = xxx
+          resolve(data)
+        }
+      },
+      areaPropsFun(item) {
+        // item为业务区域对应的值
+        let lazyLoad = async (node, resolve) =&gt; {
+          const { level } = node;
+          let data = []
+          // 获取数据 data = xxx
+          // 
+          if (level === 0) {
+          	data = [
+				{
+					label: &quot;一级数据1&quot;,
+					value: &quot;1&quot;
+				},
+				{
+					label: &quot;一级数据2&quot;,
+					value: &quot;2&quot;
+				},
+				{
+					label: &quot;一级数据3&quot;,
+					value: &quot;3&quot;
+				}
+			]
+			// 这里只是举例，具体的看业务
+			// 如果选中的一级数据是2那直接给data[1]添加children就可以了 后面组件会自动补全
+			if (item.value[0] === '2') {
+				data[1].children = []
+			}
+          }
+          resolve(data)
+        }
+        return {
+          lazy: true,
+          lazyLoad
+        }
+      },
+      validArea
+    }
+  }
+</code></pre>
+]]></content>
+    </entry>
+</feed>
